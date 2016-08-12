@@ -36,7 +36,6 @@
 - **infragranular layers**: (Layers 5-6) - receive input from the supragranular cells of adjacent columns, although they do not reciprocate; instead, they send their signals to extracortical structures, such as the thalamus, and motor and sensory centers.
 - **supragranular/infragranular process**:
   - Layer IV, which divides the column into supragranular and infragranular parts, receives its inputs from the thalamus and transmits signals to the rest of the column. The thalamus receives information from all parts of the cortex and subcortical areas. It works together with the cerebral cortex to create a feedback circuit by passing information from the infragranular cells of the cortex to the thalamus and then back to the layer IV cells of the cortex, with integration occuring both on in the thalamic and cortical centers.  
-  
   - Information flow in the cortex is mediated by the action of the supragranular cells, while additional information from the external and internal environment is integrated by the thalamus and arrives in layer IV of the cortical columns.
 
 ### Visual

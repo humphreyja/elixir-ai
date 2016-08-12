@@ -68,13 +68,11 @@ defmodule Layer23.Core do
 
     # DONE: (STEP 3) - wait a time period, select only those columns, get top weights (SP)
     sample = sample_strongest(weights, weighted_map, min_sample)
+
+    # DONE: (STEP 4) - fire columns and update weights
+    # Fires all of the columns, setting predictive states and changing input weights
+    fire_columns(sample, set)
     {:reply, sample, state}
-
-
-    # TODO: (STEP 4) - maybe new action - pass input to cells for selected columns (TP)
-    # TODO: (STEP 6) - determine if column had a cell, else fire all cells
-    # TODO: (STEP 7) - pass output to layer 1
-    # {:noreply, state}
   end
 
   def sample_strongest([weight | weaker], map, min) do
@@ -112,6 +110,11 @@ defmodule Layer23.Core do
     else
       Map.put(map, key, [elem[:column]])
     end
+  end
+
+  defp fire_columns(columns, input) do
+    columns
+    |> Enum.map(fn (col) -> Task.async(fn -> Layer23.Column.fire(col, input) end) end)
   end
 
   @doc """

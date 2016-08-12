@@ -1,24 +1,7 @@
 # Workspace
+A collection of mini projects and functions to test how something is done.
 
-**TODO: Add description**
+### Notable Projects
+> **Broadcast Hierarchy**
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
-
-  1. Add `workspace` to your list of dependencies in `mix.exs`:
-
-    ```elixir
-    def deps do
-      [{:workspace, "~> 0.1.0"}]
-    end
-    ```
-
-  2. Ensure `workspace` is started before your application:
-
-    ```elixir
-    def application do
-      [applications: [:workspace]]
-    end
-    ```
-
+> Broadcasts a message to several child nodes, collects input for select amount of time

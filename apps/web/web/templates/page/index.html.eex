@@ -1,0 +1,60 @@
+<div id="root-components">
+  <div class="errors" v-if="errors" v-for="error in errorList">
+    <strong>Error: </strong>{{ error }}
+  </div>
+
+  <div class="index" v-if="action == 0">
+    <div v-for="comp in brain_components">
+      <div class="action" v-on:click="showBrainComponent(comp)">{{ comp.name }}</div>
+    </div>
+
+    <div class="action" v-on:click="newBrainComponent">Add</div>
+  </div>
+
+  <div class="show" v-if="action == 1">
+    <div class="header">
+      <h3>{{ current_brain_component.name }}</h3>
+      <div class="action" v-on:click="indexBrainComponent">Back</div>
+    </div>
+    <div class="content">
+      <p>{{ current_brain_component.description_plaintext }}</p>
+    </div>
+    <div class="action" v-on:click="editBrainComponent(current_brain_component)">Edit</div>
+  </div>
+
+  <div class="new" v-if="action == 2">
+    <div class="header">
+      Add a new component
+      <div v-on:click="indexBrainComponent">Back</div>
+    </div>
+
+    <div class="content">
+      <input type="text" v-model="newBrainComp.name"></input>
+      <textarea v-model="newBrainComp.description_plaintext"></textarea>
+      <select v-model="newBrainComp.related_component_ids" multiple="true">
+        <option v-for="brain_component in brain_components" v-bind:value="brain_component.id">
+          {{ brain_component.name }}
+        </option>
+      </select>
+      <div class="action" v-on:click="submitBrainComponent">Add New</div>
+    </div>
+  </div>
+
+  <div class="edit" v-if="action == 3">
+    <div class="header">
+      Editing {{ newBrainComp.name }}
+      <div v-on:click="indexBrainComponent">Back</div>
+    </div>
+
+    <div class="content">
+      <input type="text" v-model="newBrainComp.name"></input>
+      <textarea v-model="newBrainComp.description_plaintext"></textarea>
+      <select v-model="newBrainComp.related_component_ids" multiple="true">
+        <option v-for="brain_component in brain_components" v-bind:value="brain_component.id">
+          {{ brain_component.name }}
+        </option>
+      </select>
+      <div class="action" v-on:click="submitBrainComponent">Update</div>
+    </div>
+  </div>
+</div>

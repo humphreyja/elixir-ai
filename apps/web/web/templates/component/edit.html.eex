@@ -1,0 +1,6 @@
+<h2>Edit component</h2>
+
+<%= render "form.html", changeset: @changeset,
+                        action: component_path(@conn, :update, @component) %>
+
+<%= link "Back", to: component_path(@conn, :index) %>

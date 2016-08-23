@@ -1,0 +1,80 @@
+// Sets up a element and its child elements with the flexbox properties needed
+// to have the given number of columns per row with multiple rows in the container
+// and an optional gutter value  that will be used between columns and rows.
+@mixin has-grid($columns, $gutter: 0, $column-class: "auto", $mobile: "auto") {
+  @include align-content(stretch);
+  @include align-items(stretch);
+  @include display(flex);
+  @include flex-direction(row);
+  @include flex-wrap(wrap);
+  @include justify-content(space-around);
+  column-count: $columns; // Used as a reference for JavaScript functions
+
+  $column-selector: "> *:not(script)";
+
+  @if $column-class != "auto" {
+    $column-selector: "." + $column-class;
+  }
+
+  #{$column-selector} {
+    @include flex(1 1 auto);
+
+    @if $gutter == 0 {
+      // If there is no gutter, we don't need to do anything other
+      // than split up the columns evenly.
+      width: 100% / $columns;
+    } @else if unit($gutter) == "px" or unit($gutter) == "em" {
+      // If there is a fixed gutter size, we need to trick the columns into
+      // being close to the right width and stretching to fill in the rest.
+      width: 85% / $columns;
+    } @else if unit($gutter) == "%" {
+      // If the gutter size is a percentage of the width, we can use the percentage
+      // to calculate the width of the columns as a percentage as well.
+      width: (100% - ($gutter * ($columns - 1))) / $columns;
+    }
+
+    // Remove the right margin for the last column in a row
+    // and the top margin for each column in the first row
+    @if $gutter > 0 {
+      margin-right: $gutter;
+      margin-top: $gutter;
+
+      @for $i from 1 through $columns {
+        &:nth-child(#{$i}) {
+          margin-top: 0;
+        }
+      }
+
+      &:nth-child(#{$columns}n) {
+        margin-right: 0;
+      }
+    }
+
+    // The JavaScript component will add empty spans to keep a uniform column width
+    &:empty {
+      margin-bottom: 0;
+      margin-top: 0;
+      visibility: hidden;
+    }
+  }
+
+  @if $mobile == "auto" {
+    // Stack columns on mobile by default
+    @media (max-width: $mobile-breakpoint) {
+      #{$column-selector} {
+        margin-bottom: $gutter;
+        margin-right: 0;
+        margin-top: 0;
+        width: 100%;
+
+        &:last-of-type {
+          margin-bottom: 0;
+        }
+
+        &:empty {
+          display: none;
+        }
+      }
+    }
+  }
+}

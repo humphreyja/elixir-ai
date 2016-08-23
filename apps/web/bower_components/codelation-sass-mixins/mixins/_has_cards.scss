@@ -1,0 +1,43 @@
+// Sets up a element and its child elements with the flexbox properties needed
+// to have the given number of columns with optional gutters or margins.
+@mixin has-cards($columns, $margin: 0, $column-class: "auto", $mobile: "auto") {
+  @include align-content(flex-start);
+  @include align-items(stretch);
+  @include display(flex);
+  @include flex-direction(row);
+  @include flex-wrap(wrap);
+  @include justify-content(space-around);
+  column-count: $columns; // Used as a reference for JavaScript functions
+  padding: $margin 0 0 $margin;
+
+  $column-selector: "> *:not(script)";
+
+  @if $column-class != "auto" {
+    $column-selector: "." + $column-class;
+  }
+
+  #{$column-selector} {
+    @include flex(1 1 auto);
+    margin: 0 $margin $margin 0;
+    width: (1 / $columns) * 85%;
+
+    &:empty {
+      margin-bottom: 0;
+      margin-top: 0;
+      visibility: hidden;
+    }
+  }
+
+  @if $mobile == "auto" {
+    // Stack columns on mobile by default
+    @media (max-width: $mobile-breakpoint) {
+      #{$column-selector} {
+        width: 100%;
+
+        &:empty {
+          display: none;
+        }
+      }
+    }
+  }
+}

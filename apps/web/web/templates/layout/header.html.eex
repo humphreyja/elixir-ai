@@ -1,0 +1,8 @@
+<header class="header">
+  <h3>Brain Research</h3>
+  <div class="navigation">
+    <div>
+      <%= link "Biological Structure", to: component_path(@conn, :index) %>
+    </div>
+  </div>
+</header>

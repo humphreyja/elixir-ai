@@ -1,0 +1,40 @@
+<section>
+  <div class="heading">
+    <h2>Biological Structure</h2>
+  </div>
+  <div class="content">
+    <%= for component <- @components do %>
+        <tr>
+
+          <td class="text-right">
+            <%= link "Show", to: component_path(@conn, :show, component), class: "btn btn-default btn-xs" %>
+            <%= link "Edit", to: component_path(@conn, :edit, component), class: "btn btn-default btn-xs" %>
+            <%= link "Delete", to: component_path(@conn, :delete, component), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %>
+          </td>
+        </tr>
+    <% end %>
+  </div>
+</section>
+
+<table class="table">
+  <thead>
+    <tr>
+
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for component <- @components do %>
+    <tr>
+
+      <td class="text-right">
+        <%= link "Show", to: component_path(@conn, :show, component), class: "btn btn-default btn-xs" %>
+        <%= link "Edit", to: component_path(@conn, :edit, component), class: "btn btn-default btn-xs" %>
+        <%= link "Delete", to: component_path(@conn, :delete, component), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>
+
+<%= link "New component", to: component_path(@conn, :new) %>

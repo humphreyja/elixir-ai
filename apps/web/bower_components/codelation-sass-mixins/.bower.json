@@ -1,0 +1,33 @@
+{
+  "name": "codelation-sass-mixins",
+  "description": "A collection of Sass functions and mixins used by Codelation.",
+  "authors": [
+    "Brian Pattison <brian@brianpattison.com>"
+  ],
+  "main": "_codelation.scss",
+  "keywords": [
+    "codelation",
+    "columns",
+    "flexbox",
+    "grid",
+    "sass"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/codelation/sass-mixins",
+  "ignore": [
+    "bower_components"
+  ],
+  "dependencies": {
+    "bourbon": "^4.2.6"
+  },
+  "version": "1.1.2",
+  "_release": "1.1.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.1.2",
+    "commit": "ede5f1b456b0b8ff265423fe0760572a59933cc3"
+  },
+  "_source": "https://github.com/codelation/sass-mixins.git",
+  "_target": "^1.1.2",
+  "_originalSource": "codelation-sass-mixins"
+}

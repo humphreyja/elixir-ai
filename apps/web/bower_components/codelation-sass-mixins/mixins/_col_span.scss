@@ -1,0 +1,16 @@
+// Used to create create columns in a row that span the width of multiple columns in another row.
+// See the readme for more details on usage.
+@mixin col-span($span: $columns of $total-columns, $gutter: 0) {
+  $columns: nth($span, 1);
+  $container-columns: nth($span, 3);
+
+  @if ($gutter != 0 and unit($gutter) != "%") {
+    @error "The col-span mixin can only be used if there is no gutter or the gutter's unit is %";
+  }
+
+  $single-column-width: (100% - ($gutter * ($container-columns - 1))) / $container-columns;
+  $spanned-width: $single-column-width * $columns;
+  $spanned-gutters-width: $gutter * ($columns - 1);
+
+  width: $spanned-width + $spanned-gutters-width;
+}

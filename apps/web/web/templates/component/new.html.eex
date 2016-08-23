@@ -1,6 +1,0 @@
-<h2>New component</h2>
-
-<%= render "form.html", changeset: @changeset,
-                        action: component_path(@conn, :create) %>
-
-<%= link "Back", to: component_path(@conn, :index) %>

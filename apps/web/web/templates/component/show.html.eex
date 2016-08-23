@@ -1,8 +1,0 @@
-<h2>Show component</h2>
-
-<ul>
-
-</ul>
-
-<%= link "Edit", to: component_path(@conn, :edit, @component) %>
-<%= link "Back", to: component_path(@conn, :index) %>

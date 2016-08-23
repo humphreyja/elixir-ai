@@ -1,9 +1,0 @@
-// Centers child elements horizontally and vertically without needing
-// to set the height and width of the child elements using flexbox.
-@mixin center-children {
-  @include align-content(center);
-  @include align-items(center);
-  @include display(flex);
-  @include flex-direction(column);
-  @include justify-content(center);
-}

@@ -1,31 +1,51 @@
 defmodule Sensory.Terminal do
   use GenServer
 
+  @character_max_attr 50
+
   def start_link(:default) do
     GenServer.start_link(__MODULE__, :ok, [])
   end
 
-  def init(:ok) do
-    # TODO (Sensory): Spawn executable for camera.  Store process in state.
-    {:ok, %{}}
+  def init(:ok), do: {:ok, %{}}
+
+  def read(_server, ""), do: :ok
+  def read(server, text) do
+    {current_read, rest} = String.split_at(text, 10)
+    GenServer.cast(server, {:read, current_read})
+    read(server, rest)
   end
 
-  def read(server, data) do
-    # TODO (Sensory): Initiate infinate read from camera.
-    GenServer.cast(server, {:read, data})
+  def input_first(server, text) do
+    {current_read, _rest} = String.split_at(text, 10)
+    GenServer.call(server, {:test_read, current_read})
   end
 
   def get_sdr(server, char) do
     GenServer.call(server, {:get_char, char})
   end
 
-  def handle_cast({:read, data}, state) do
-    # TODO: (Sensory): On each message, send image to Thalamus core.
+  def handle_cast({:read, text}, state) do
+    # TODO: (Sensory): On each message, send sdr to Thalamus core.
+    characters = String.codepoints(text)
+    full_sdr = find_char_and_adjust_sdr(characters, 0)
+    IO.puts "#{text} = #{inspect full_sdr}"
     {:noreply, state}
+  end
+
+  def handle_call({:test_read, text}, _from, state) do
+    characters = String.codepoints(text)
+    full_sdr = find_char_and_adjust_sdr(characters, 0)
+    {:reply, full_sdr, state}
   end
 
   def handle_call({:get_char, char}, _from, state) do
     {:reply, char_to_sdr(char), state}
+  end
+
+  defp find_char_and_adjust_sdr([], _incr), do: []
+  defp find_char_and_adjust_sdr([char|rest], incr) do
+    Enum.map(char_to_sdr(char), &(&1 + incr)) ++ find_char_and_adjust_sdr(rest, incr + @character_max_attr)
   end
 
   defp char_to_sdr(char) do
@@ -124,7 +144,7 @@ defmodule Sensory.Terminal do
       "Y" => [5, 9, 11, 12, 15, 19, 20, 22, 24, 30, 37],
       "Z" => [4, 7, 8, 9, 10, 11, 12, 16, 19, 20, 24, 30, 38, 41]
     }
-    
+
     case Map.fetch(character_map, char) do
       {:ok, sdr} ->
         sdr

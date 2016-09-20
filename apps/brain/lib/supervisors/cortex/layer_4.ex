@@ -19,17 +19,18 @@ defmodule Supervisors.Cortex.Layer4 do
   Adds cells to layer
   """
   def build_layer(sense) do
-    build_cells(sense.cell_name_prefix, sense.layer_4_count)
+    build_cells(sense.cell_name_prefix, sense.layer_4_count, sense)
   end
 
-  defp build_cells(_, 0), do: []
+  defp build_cells(_, 0, _), do: []
 
-  defp build_cells(prefix, count) do
+  defp build_cells(prefix, count, sense) do
     name = Enum.join([prefix, "4", count], "_")
-    [build_single_cell(name)] ++ build_cells(prefix, count - 1)
+    build_single_cell(name, sense)
+    build_cells(prefix, count - 1, sense)
   end
 
-  defp build_single_cell(name) do
-    Supervisor.start_child(@name, [String.to_atom name])
+  defp build_single_cell(name, sense) do
+    out = Supervisor.start_child(@name, [String.to_atom(name), sense])
   end
 end

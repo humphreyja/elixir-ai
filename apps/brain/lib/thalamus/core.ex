@@ -27,12 +27,16 @@ defmodule Thalamus.Core do
   # end
   #
   def handle_cast({:sensory_input, data}, state) do
-    # TODO: (Thalamus): Take in the input, subtract previous input, pass final input to cortex region.
-
-    IO.puts "#{inspect data}"
-
+    {:ok, sense} = Map.fetch(state, :sense)
+    Enum.map(data, fn (d) -> Task.async(fn -> send_to_cell(sense, d) end) end)
     {:noreply, state}
   end
+
+  defp send_to_cell(sense, cell_id) do
+    pid_name = String.to_atom Enum.join([sense.cell_name_prefix, 4, cell_id], "_")
+    Cortex.Layer4.thalamus_input(pid_name)
+  end
+
   #
   # def handle_cast({:cortex_input, data}, state) do
   #   # TODO (Thalamus): Store that input in the state for subtracting from new input.

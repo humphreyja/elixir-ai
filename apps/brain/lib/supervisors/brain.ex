@@ -17,5 +17,9 @@ defmodule Supervisors.Brain do
     ]
     opts = [strategy: :one_for_one]
     Supervisor.start_link(children, opts)
+
+
+
+    Supervisors.Cortex.start_sensory(Sensory.Terminal)
   end
 end

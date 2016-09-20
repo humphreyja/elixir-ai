@@ -1,12 +1,12 @@
 defmodule Cortex.Layer5 do
   use GenServer
 
-  def start_link(name) do
-    GenServer.start_link(__MODULE__, :ok, name: name)
+  def start_link(name, sense) do
+    GenServer.start_link(__MODULE__, sense, name: name)
   end
 
-  def init(:ok) do
-    {:ok, %{}}
+  def init(sense) do
+    {:ok, %{sense: sense}}
   end
 
   def thalamus_output(server, data) do

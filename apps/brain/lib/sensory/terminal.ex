@@ -1,23 +1,46 @@
 defmodule Sensory.Terminal do
+  @moduledoc """
+  Takes in any amount of terminal input and breaks it into strings of
+  @max_characters (10) length and creates an SDR of each string
+  """
+
   use GenServer
 
   @character_max_attr 50
+  @max_characters 10
+  @name Terminal.Sensory
 
-  def start_link(:default) do
-    GenServer.start_link(__MODULE__, :ok, [])
+  def cortex_name, do: Terminal.Sensory.Cortex
+  def thalamus_name, do: Terminal.Sensory.Thalamus.Core
+  def cell_name_prefix, do: "sensory_terminal"
+  def layer_1_count, do: 10
+  def layer_23_count, do: round (Sensory.Terminal.layer_4_count / 2)
+  def layer_4_count, do: @character_max_attr * @max_characters
+  def layer_5_count, do: 10
+  def layer_6_count, do: 10
+
+  def start_link do
+    GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
   end
 
-  def init(:ok), do: {:ok, %{}}
+  def init(:ok) do
+    Supervisors.Cortex.Layer1.build_layer(__MODULE__)
+    Supervisors.Cortex.Layer23.build_layer(__MODULE__)
+    Supervisors.Cortex.Layer4.build_layer(__MODULE__)
+    Supervisors.Cortex.Layer5.build_layer(__MODULE__)
+    Supervisors.Cortex.Layer6.build_layer(__MODULE__)
+    {:ok, %{}}
+  end
 
   def read(_server, ""), do: :ok
   def read(server, text) do
-    {current_read, rest} = String.split_at(text, 10)
+    {current_read, rest} = String.split_at(text, @max_characters)
     GenServer.cast(server, {:read, current_read})
     read(server, rest)
   end
 
   def input_first(server, text) do
-    {current_read, _rest} = String.split_at(text, 10)
+    {current_read, _rest} = String.split_at(text, @max_characters)
     GenServer.call(server, {:test_read, current_read})
   end
 
@@ -29,7 +52,8 @@ defmodule Sensory.Terminal do
     # TODO: (Sensory): On each message, send sdr to Thalamus core.
     characters = String.codepoints(text)
     full_sdr = find_char_and_adjust_sdr(characters, 0)
-    IO.puts "#{text} = #{inspect full_sdr}"
+    Thalamus.Core.sensory_input(thalamus_name, full_sdr)
+
     {:noreply, state}
   end
 

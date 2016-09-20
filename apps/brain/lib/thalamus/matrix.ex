@@ -1,8 +1,10 @@
 defmodule Thalamus.Matrix do
   use GenServer
 
-  def start_link(:default) do
-    GenServer.start_link(__MODULE__, :ok, %{})
+  @name Thalamus.Matrix
+
+  def start_link do
+    GenServer.start_link(__MODULE__, :ok, name: @name)
   end
 
   def init(:ok) do

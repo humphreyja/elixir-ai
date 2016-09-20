@@ -1,25 +1,40 @@
 defmodule Cortex.Layer4 do
   use GenServer
 
+  @doc """
+  Start a new cell process with the given name
+  """
   def start_link(name, sense) do
     GenServer.start_link(__MODULE__, [sense, name], name: name)
   end
 
+  @doc """
+  Initializes the cell with the given sense and constructs a
+  set of projections to layer23.
+  """
   def init([sense, name]) do
-
     outputs = build_outputs(sense, name)
     {:ok, %{sense: sense, outputs: outputs}}
   end
 
+  @doc """
+  Recieve input from a thalamus projection
+  """
   def thalamus_input(server) do
     GenServer.cast(server, {:thalamus_input, server})
   end
 
+  @doc """
+  Broadcast to each one of the layer 23 cells that this cell projects to.
+  """
   def handle_cast({:thalamus_input, data}, state) do
     state = broadcast(state)
     {:noreply, state}
   end
 
+  """
+  Broadcast async to each projected cell in layer 23
+  """
   defp broadcast(state) do
     {:ok, sense} = Map.fetch(state, :sense)
     {:ok, outputs} = Map.fetch(state, :outputs)
@@ -32,14 +47,28 @@ defmodule Cortex.Layer4 do
     state
   end
 
+  """
+  Broadcast to cell with pid_name
+  """
   defp broadcast_to_cell(pid_name) do
     Cortex.Layer23.layer4_input(pid_name)
   end
 
+  """
+  Build cell name from sense prefix, layer, and cell id
+  """
   defp cell_name(sense, layer, c_id) do
     String.to_atom Enum.join([sense.cell_name_prefix, layer, c_id], "_")
   end
 
+  """
+  Build projections to cells in layer 23.
+
+  NOTE: Because of an error with Enum.count, I simplified this from
+        attempting to programmably get an even set of projections across the
+        entire layer, to randomly building the projections.  See the
+        commented out code below.
+  """
   defp build_outputs(sense, name) do
     # get list of indexes that are not already used
     total_outputs = sense.layer_23_count

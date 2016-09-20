@@ -10,6 +10,9 @@ defmodule Sensory.Terminal do
   @max_characters 10
   @name Terminal.Sensory
 
+  """
+  Constant attributes that declare naming conventions and describe the cortex sizes
+  """
   def cortex_name, do: Terminal.Sensory.Cortex
   def thalamus_name, do: Terminal.Sensory.Thalamus.Core
   def cell_name_prefix, do: "sensory_terminal"
@@ -23,6 +26,10 @@ defmodule Sensory.Terminal do
     GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
   end
 
+  @doc """
+  Initializes the sense.  COnstructs each cortex layer based on the modules
+  specification declared in the functions above.
+  """
   def init(:ok) do
     Supervisors.Cortex.Layer1.build_layer(__MODULE__)
     Supervisors.Cortex.Layer23.build_layer(__MODULE__)
@@ -33,21 +40,46 @@ defmodule Sensory.Terminal do
   end
 
   def read(_server, ""), do: :ok
+
+  @doc """
+  Reads in a string of characters and breaks them into strings @max_characters
+  long.  Then recursively does that again until there are no more characters left.
+  It will take each character, find its visual representation, and construct a list
+  that can be @max_characters * @character_max_attr long.  Then it sends that list
+  to the Thalamus Core associated with the sense (provided in the function above).
+
+  ## Examples
+
+      iex> Brain.Sensory.Terminal.read(Sensory.Terminal, "abds")
+      :ok
+
+  """
   def read(server, text) do
     {current_read, rest} = String.split_at(text, @max_characters)
     GenServer.cast(server, {:read, current_read})
     read(server, rest)
   end
 
+  @doc """
+  Tests the module to determine if the correct sdr is formed for the inputed
+  characters
+  """
   def input_first(server, text) do
     {current_read, _rest} = String.split_at(text, @max_characters)
     GenServer.call(server, {:test_read, current_read})
   end
 
+  @doc """
+  Gets the visual representation of a single character.  Used in testing.
+  """
   def get_sdr(server, char) do
     GenServer.call(server, {:get_char, char})
   end
 
+  @doc """
+  Handles casts from the read function.  It will get the full character
+  attribute list and use that as input to the senses thalamus core.
+  """
   def handle_cast({:read, text}, state) do
     # TODO: (Sensory): On each message, send sdr to Thalamus core.
     characters = String.codepoints(text)
@@ -67,11 +99,21 @@ defmodule Sensory.Terminal do
     {:reply, char_to_sdr(char), state}
   end
 
+  """
+  Used to create a list of character attributes by increasing the next characters
+  attribute list by @character_max_attr.  So for a list of 10 characters with 50 attributes
+  total, there would be a list that can be max 500 elements long.
+  """
   defp find_char_and_adjust_sdr([], _incr), do: []
   defp find_char_and_adjust_sdr([char|rest], incr) do
     Enum.map(char_to_sdr(char), &(&1 + incr)) ++ find_char_and_adjust_sdr(rest, incr + @character_max_attr)
   end
 
+  """
+  Contains a map of every character on a US Mac keyboard, with a list of attributes
+  that visually describe the character.  This makes characters like 1 and l visualy
+  similar.
+  """
   defp char_to_sdr(char) do
     character_map = %{
       "1" => [11, 12, 16, 30, 39, 41],

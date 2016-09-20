@@ -1,4 +1,10 @@
 defmodule Thalamus.Core do
+  @moduledoc """
+  Receives input from a sense, converts it to a list of process ids and sends
+  the processes a message.  This will be expanded to accept input from the cortex
+  and influence the incomming input by removing any previous similar inputs.  Not sure
+  if this is the correct approach yet.  
+  """
   use GenServer
 
   def start_link(sense) do

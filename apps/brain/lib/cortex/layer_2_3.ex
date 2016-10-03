@@ -11,7 +11,7 @@ defmodule Cortex.Layer23 do
 
   def init([sense, name, inhibitory_name]) do
     Brain.atrophy(__MODULE__, self, @atrophy_cycle_time)
-    {:ok, %{sense: sense, name: name, inhibitory_name: inhibitory_name, inputs: %{}, action_potential: [], awake: true}}
+    {:ok, %{sense: sense, name: name, inhibitory_name: inhibitory_name, action_potential: [], awake: true}}
   end
 
   def associate(server, column_cells) do
@@ -20,20 +20,6 @@ defmodule Cortex.Layer23 do
 
   def handle_cast({:construct_column_association, column_cells}, state) do
     state = Map.merge(state, %{column: column_cells})
-    {:noreply, state}
-  end
-
-  @doc """
-  Adds a layer 4 input cell to the list of inputs
-  """
-  def add_input(server, l4_id) do
-    GenServer.cast(server, {:add_input, l4_id})
-  end
-
-  def handle_cast({:add_input, data}, state) do
-    {:ok, inputs} = Map.fetch(state, :inputs)
-    inputs = Map.put(inputs, data, 1)
-    state = Map.merge(state, %{inputs: inputs})
     {:noreply, state}
   end
 
@@ -50,8 +36,9 @@ defmodule Cortex.Layer23 do
   potential list.
   """
   def handle_cast({:layer4_input, l4_name}, state) do
-    {:ok, inputs} = Map.fetch(state, :inputs)
-    {:ok, strength} = Map.fetch(inputs, l4_name)
+    {:ok, column} = Map.fetch(state, :column)
+    {:ok, l4_cells} = Map.fetch(column, :l4)
+    {:ok, strength} = Map.fetch(l4_cells, l4_name)
     {:ok, inhibitory_name} = Map.fetch(state, :inhibitory_name)
     {:ok, name} = Map.fetch(state, :name)
 
@@ -64,6 +51,8 @@ defmodule Cortex.Layer23 do
     state = Map.put(state, :action_potential, action_potential)
     {:noreply, state}
   end
+
+
 
   @doc """
   After the inhibitory cell handles inputs from a bunch of other cells, it selects
@@ -89,18 +78,26 @@ defmodule Cortex.Layer23 do
   def handle_cast(:fire, state) do
     {:ok, name} = Map.fetch(state, :name)
     {:ok, action_potential} = Map.fetch(state, :action_potential)
-    {:ok, inputs} = Map.fetch(state, :inputs)
+    {:ok, column} = Map.fetch(state, :column)
+    {:ok, l4_cells} = Map.fetch(column, :l4)
 
-    updated_inputs = Map.new(Enum.map(action_potential, fn (name) ->
-      {:ok, synaptic_strength} = Map.fetch(inputs, name)
+    # TODO: Fire column if not predicting
+    {:ok, l23_cells} = Map.fetch(column, :l23)
+
+    updated_l4_cells = Map.new(Enum.map(action_potential, fn (name) ->
+      {:ok, synaptic_strength} = Map.fetch(l4_cells, name)
       {name, synaptic_strength + 1}
     end))
 
-    inputs = Map.merge(inputs, updated_inputs)
+    l4_cells = Map.merge(l4_cells, updated_l4_cells)
 
-    state = Map.merge(state, %{inputs: inputs, action_potential: [], awake: false})
+    column = Map.merge(column, %{l4: l4_cells})
+    state = Map.merge(state, %{column: column, action_potential: [], awake: false})
     GenServer.cast(self, {:wake_up_cell, @recovery_cycle_length})
     IO.puts "FIRE"
+
+    Cortex.Layer5.layer_23_input()
+
     {:noreply, state}
   end
 
@@ -132,8 +129,9 @@ defmodule Cortex.Layer23 do
   Use if or lose it.
   """
   def handle_cast(:atrophy, state) do
-    {:ok, inputs} = Map.fetch(state, :inputs)
-    inputs = Map.new(Enum.map(inputs, fn ({name, strength}) ->
+    {:ok, column} = Map.fetch(state, :column)
+    {:ok, l4_cells} = Map.fetch(column, :l4)
+    l4_cells = Map.new(Enum.map(l4_cells, fn ({name, strength}) ->
               if strength > 2 do
                 {name, strength - 1}
               else
@@ -141,7 +139,8 @@ defmodule Cortex.Layer23 do
               end
             end))
 
-    state = Map.merge(state, %{inputs: inputs})
+    column = Map.merge(column, %{l4: l4_cells})
+    state = Map.merge(state, %{column: column})
     {:noreply, state}
   end
 end

@@ -15,8 +15,8 @@ defmodule Supervisors.Cortex.Layer23 do
     supervise(children, strategy: :simple_one_for_one)
   end
 
-  def start_cell(name, sense) do
-     Supervisor.start_child(@name, [name, sense])
+  def start_cell(name, inhibitory_name, sense) do
+     Supervisor.start_child(@name, [name, inhibitory_name, sense])
   end
 
   @doc """

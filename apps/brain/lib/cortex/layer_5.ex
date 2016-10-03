@@ -18,11 +18,11 @@ defmodule Cortex.Layer5 do
     {:noreply, state}
   end
 
-  def thalamus_output(server, data) do
-    GenServer.cast(server, {:thalamus_output, data})
+  def layer23_input(server, data) do
+    GenServer.cast(server, {:layer_23_input, data})
   end
 
-  def handle_cast({:thalamus_output, data}, state) do
+  def handle_cast({:layer_23_input, data}, state) do
     IO.puts "L5 from/to Thalamus #{inspect data}"
     {:noreply, state}
   end

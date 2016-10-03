@@ -14,6 +14,18 @@ defmodule Cortex.Cells.Inhibitory do
     {:ok, %{cells: %{}, inputs: %{}, awake: true}}
   end
 
+  def associate_cells(server, cell_names) do
+     GenServer.cast(server, {:insert_cells, cell_names})
+  end
+
+  def handle_cast({:insert_cells, cell_names}, state) do
+    {:ok, cells} = Map.fetch(state, :cells)
+    cells = Map.merge(cells, cell_names)
+    state = Map.merge(state, %{cells: cells})
+    {:noreply, state}
+  end
+
+
   @doc """
   Adds a cell to the inhibitory cell list
   """
@@ -101,7 +113,7 @@ defmodule Cortex.Cells.Inhibitory do
   end
 
   @doc """
-  Go through each input, dtermine which is the best, inhibit the rest, fire the strongest
+  Go through each input, determine which is the best, inhibit the rest, fire the strongest
   """
   def handle_cast({:process_inputs, inputs}, state) do
     {:ok, cells} = Map.fetch(state, :cells)

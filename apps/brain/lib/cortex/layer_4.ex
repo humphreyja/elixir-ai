@@ -14,7 +14,16 @@ defmodule Cortex.Layer4 do
   """
   def init([sense, name]) do
     outputs = build_outputs(sense, name)
-    {:ok, %{sense: sense, outputs: outputs}}
+    {:ok, %{sense: sense, outputs: outputs, name: name}}
+  end
+
+  def associate(server, column_cells) do
+     GenServer.cast(server, {:construct_column_association, column_cells})
+  end
+
+  def handle_cast({:construct_column_association, column_cells}, state) do
+    state = Map.merge(state, %{column: column_cells})
+    {:noreply, state}
   end
 
   @doc """
@@ -38,9 +47,10 @@ defmodule Cortex.Layer4 do
   defp broadcast(state) do
     {:ok, sense} = Map.fetch(state, :sense)
     {:ok, outputs} = Map.fetch(state, :outputs)
+    {:ok, name} = Map.fetch(state, :name)
     Enum.map(outputs, fn (c_id) ->
         Task.async(fn ->
-            broadcast_to_cell(cell_name(sense, 23, c_id))
+            broadcast_to_cell(cell_name(sense, 23, c_id), name)
         end)
     end)
 
@@ -50,8 +60,8 @@ defmodule Cortex.Layer4 do
   """
   Broadcast to cell with pid_name
   """
-  defp broadcast_to_cell(pid_name) do
-    Cortex.Layer23.layer4_input(pid_name)
+  defp broadcast_to_cell(pid_name, l4_name) do
+    Cortex.Layer23.layer4_input(pid_name, l4_name)
   end
 
   """

@@ -9,6 +9,15 @@ defmodule Cortex.Layer5 do
     {:ok, %{sense: sense}}
   end
 
+  def associate(server, column_cells) do
+     GenServer.cast(server, {:construct_column_association, column_cells})
+  end
+
+  def handle_cast({:construct_column_association, column_cells}, state) do
+    state = Map.merge(state, %{column: column_cells})
+    {:noreply, state}
+  end
+
   def thalamus_output(server, data) do
     GenServer.cast(server, {:thalamus_output, data})
   end

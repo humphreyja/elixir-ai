@@ -15,6 +15,10 @@ defmodule Supervisors.Cortex.Layer4 do
     supervise(children, strategy: :simple_one_for_one)
   end
 
+  def start_cell(name, sense) do
+     Supervisor.start_child(@name, [name, sense])
+  end
+
   @doc """
   Adds cells to layer
   """
@@ -31,6 +35,6 @@ defmodule Supervisors.Cortex.Layer4 do
   end
 
   defp build_single_cell(name, sense) do
-    out = Supervisor.start_child(@name, [String.to_atom(name), sense])
+    Supervisor.start_child(@name, [String.to_atom(name), sense])
   end
 end

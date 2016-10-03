@@ -29,6 +29,7 @@ defmodule Supervisors.Brain do
 
     import Supervisor.Spec, warn: false
     children = [
+      worker(Brain, []),
       worker(Thalamus.Matrix, []),
       worker(Cerebellum.Cerebellum, []),
       worker(BasalGanglia.BasalGanglia, []),

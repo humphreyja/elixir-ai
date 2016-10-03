@@ -16,23 +16,26 @@ defmodule Sensory.Terminal do
   def cortex_name, do: Terminal.Sensory.Cortex
   def thalamus_name, do: Terminal.Sensory.Thalamus.Core
   def cell_name_prefix, do: "sensory_terminal"
-  def layer_1_count, do: 10
+  def layer_1_count, do: 50
   def layer_23_count, do: round (Sensory.Terminal.layer_4_count / 2)
   def layer_4_count, do: @character_max_attr * @max_characters
-  def layer_5_count, do: 10
-  def layer_6_count, do: 10
+  def layer_5_count, do: 50
+  def layer_6_count, do: 50
+  def layer_23_inhibitory_density, do: 10
+  def cortex_column_count, do: 50
 
   def start_link do
     GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
   end
 
   @doc """
-  Initializes the sense.  COnstructs each cortex layer based on the modules
+  Initializes the sense.  Constructs each cortex layer based on the modules
   specification declared in the functions above.
   """
   def init(:ok) do
     Supervisors.Cortex.Layer1.build_layer(__MODULE__)
     Supervisors.Cortex.Layer23.build_layer(__MODULE__)
+    #Supervisors.Cortex.Layer23Inhibitory.add_to_layer_2_3(__MODULE__)
     Supervisors.Cortex.Layer4.build_layer(__MODULE__)
     Supervisors.Cortex.Layer5.build_layer(__MODULE__)
     Supervisors.Cortex.Layer6.build_layer(__MODULE__)
@@ -57,6 +60,7 @@ defmodule Sensory.Terminal do
   def read(server, text) do
     {current_read, rest} = String.split_at(text, @max_characters)
     GenServer.cast(server, {:read, current_read})
+    :timer.sleep(40)
     read(server, rest)
   end
 

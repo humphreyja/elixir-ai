@@ -44,17 +44,17 @@ defmodule Cortex.Cells.Inhibitory do
   Each time a 23 cell receives a layer 4 input, it will forward the input
   to the inhibitory cell
   """
-  def layer_23_input(server, cell_name, synapse_strenght) do
-    GenServer.cast(server, {:layer_23_input, cell_name, synapse_strenght})
+  def layer_23_input(server, cell_name, synapse_strength) do
+    GenServer.cast(server, {:layer_23_input, cell_name, synapse_strength})
   end
 
   @doc """
-  The input get accumulated. On first input, a countdown is started so that
+  The input gets accumulated. On first input, a countdown is started so that
   the inhibitory cell is only listening for 40 mil seconds
   """
-  def handle_cast({:layer_23_input, cell_name, synapse_strenght}, state) do
+  def handle_cast({:layer_23_input, cell_name, synapse_strength}, state) do
     case Map.fetch(state, :awake) do
-      {:ok, true} -> receive_inputs(cell_name, synapse_strenght, state)
+      {:ok, true} -> receive_inputs(cell_name, synapse_strength, state)
       _else       -> {:noreply, state}
     end
   end
@@ -84,14 +84,12 @@ defmodule Cortex.Cells.Inhibitory do
   """
   def handle_cast(:complete_listening_stage, state) do
     :timer.sleep(@receive_input_cycle_length)
-    {:ok, inputs} = Map.fetch(state, :inputs)
-    Cortex.Cells.Inhibitory.process_inputs(self, inputs)
 
-    # Clear the inputs
-    state = Map.merge(state, %{inputs: %{}, awake: false})
-
+    GenServer.cast(server, :process_inputs)
     # The cell will reject any inputs while it is recovering from being fired
     GenServer.cast(self, :wake_up_cell)
+
+    state = Map.merge(state, %{awake: false})
     {:noreply, state}
   end
 
@@ -100,23 +98,16 @@ defmodule Cortex.Cells.Inhibitory do
   """
   def handle_cast(:wake_up_cell, state) do
     :timer.sleep(@reject_input_cycle_length)
-    state = Map.merge(state, %{awake: true})
+    state = Map.merge(state, %{inputs: %{}, awake: true})
     {:noreply, state}
-  end
-
-
-  @doc """
-  Once the cell finished listening, cast to the server all the inputs to process
-  """
-  def process_inputs(server, inputs) do
-     GenServer.cast(server, {:process_inputs, inputs})
   end
 
   @doc """
   Go through each input, determine which is the best, inhibit the rest, fire the strongest
   """
-  def handle_cast({:process_inputs, inputs}, state) do
+  def handle_cast(:process_inputs, state) do
     {:ok, cells} = Map.fetch(state, :cells)
+    {:ok, inputs} = Map.fetch(state, :inputs)
     largest_name = determine_strongest_cell(Map.to_list(inputs), 0, nil, cells)
     inhibit_cells = Map.drop(cells, [largest_name])
 
@@ -136,6 +127,9 @@ defmodule Cortex.Cells.Inhibitory do
                                   _err            -> 1
                                 end
     cells = Map.put(cells, largest_name, largest_inhibit_strength + 1)
+    # Clear the inputs
+    state = Map.merge(state, %{inputs: %{}, awake: false})
+
     state = Map.merge(state, %{cells: cells})
     {:noreply, state}
   end

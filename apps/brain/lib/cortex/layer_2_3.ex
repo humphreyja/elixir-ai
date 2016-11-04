@@ -11,7 +11,7 @@ defmodule Cortex.Layer23 do
 
   def init([sense, name, inhibitory_name]) do
     Brain.atrophy(__MODULE__, self, @atrophy_cycle_time)
-    {:ok, %{sense: sense, name: name, inhibitory_name: inhibitory_name, action_potential: [], awake: true}}
+    {:ok, %{sense: sense, name: name, inhibitory_name: inhibitory_name, action_potential: [], awake: true, predicting: false}}
   end
 
   def associate(server, column_cells) do
@@ -70,6 +70,21 @@ defmodule Cortex.Layer23 do
     GenServer.cast(server, :inhibit)
   end
 
+  def handle_cast(:column_fire, state) do
+    {:ok, column} = Map.fetch(state, :column)
+    {:ok, l6_cells} = Map.fetch(column, :l6)
+    {:ok, l5_cells} = Map.fetch(column, :l5)
+
+    IO.puts "---------------->>> COLUMN FIRE"
+    {l6_cell, _} = Enum.at(l6_cells, 0)
+    Cortex.Layer6.layer_23_input(l6_cell, name)
+
+    {l5_cell, _} = Enum.at(l5_cells, 0)
+    Cortex.Layer5.layer_23_input(l5_cell, name)
+
+    {:noreply, state}
+  end
+
   @doc """
   When a cell is selected to fire, first, all of the synapses that built up to
   the action potential are grown stronger.  Then the cell is put into a recovery
@@ -80,9 +95,16 @@ defmodule Cortex.Layer23 do
     {:ok, action_potential} = Map.fetch(state, :action_potential)
     {:ok, column} = Map.fetch(state, :column)
     {:ok, l4_cells} = Map.fetch(column, :l4)
-
-    # TODO: Fire column if not predicting
+    {:ok, l6_cells} = Map.fetch(column, :l6)
+    {:ok, l5_cells} = Map.fetch(column, :l5)
     {:ok, l23_cells} = Map.fetch(column, :l23)
+
+    case Map.fetch(state, :predicting) do
+      {:ok, true} -> fire_column(l23_cells, name)
+      _err        -> nil
+    end
+
+
 
     updated_l4_cells = Map.new(Enum.map(action_potential, fn (name) ->
       {:ok, synaptic_strength} = Map.fetch(l4_cells, name)
@@ -94,11 +116,26 @@ defmodule Cortex.Layer23 do
     column = Map.merge(column, %{l4: l4_cells})
     state = Map.merge(state, %{column: column, action_potential: [], awake: false})
     GenServer.cast(self, {:wake_up_cell, @recovery_cycle_length})
-    IO.puts "FIRE"
 
-    Cortex.Layer5.layer_23_input()
+    IO.puts "FIRE"
+    {l6_cell, _} = Enum.at(l6_cells, 0)
+    Cortex.Layer6.layer_23_input(l6_cell, name)
+
+    {l5_cell, _} = Enum.at(l5_cells, 0)
+    Cortex.Layer5.layer_23_input(l5_cell, name)
 
     {:noreply, state}
+  end
+
+  defp fire_column(column, name) do
+    {_, rest_of_column} = Map.pop(column, name)
+    Enum.map(rest_of_column, fn ({cell, _weight}) ->
+        Task.async(fn ->
+          GenServer.cast(cell, :column_fire)
+        end)
+    end)
+
+    0
   end
 
   @doc """

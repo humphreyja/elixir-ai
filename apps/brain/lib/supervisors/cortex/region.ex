@@ -98,8 +98,10 @@ defmodule Supervisors.Cortex.Region do
 
   defp build_layer_1_cells(0, _, _), do: %{}
   defp build_layer_1_cells(count, column, sense) do
-    c_id = count + column
-    name = cell_name(sense.cell_name_prefix, "1", c_id)
+    #c_id = count + column
+    #name = cell_name(sense.cell_name_prefix, "1", c_id)
+    #Supervisors.Cortex.Layer1.start_cell(name, sense)
+    name = Cortex.Layer1.prefix_to_name(sense.cell_name_prefix)
     Supervisors.Cortex.Layer1.start_cell(name, sense)
     Map.put(build_layer_1_cells(count - 1, column, sense), name, 1)
   end

@@ -6,7 +6,7 @@ defmodule Cortex.Layer1 do
   end
 
   def init(sense) do
-    {:ok, %{sense: sense, column: %{}}}
+    {:ok, %{sense: sense, column: %{}, previous_input: %{}}}
   end
 
   def associate(server, column_cells) do
@@ -18,12 +18,28 @@ defmodule Cortex.Layer1 do
     {:noreply, state}
   end
 
-  def thalamus_input(server, data) do
-    GenServer.cast(server, {:thalamus_input, data})
+  def thalamus_input(prefix, cells) do
+    GenServer.cast(Cortex.Layer1.prefix_to_name(prefix), {:thalamus_input, cells})
   end
 
-  def handle_cast({:thalamus_input, data}, state) do
-    IO.puts "L1 from Thalamus #{inspect data}"
+  def handle_cast({:thalamus_input, cells}, state) do
+    IO.puts "L1 from Thalamus #{inspect cells}"
+    state = Map.put(state, :previous_input, cells)
     {:noreply, state}
+  end
+
+  def get_previous_input(prefix) do
+    GenServer.call(Cortex.Layer1.prefix_to_name(prefix), {:previous_input})
+  end
+
+  def handle_call({:previous_input}, _from, state) do
+    case Map.fetch(state, :previous_input) do
+      {:ok, input} -> {:reply, input, state}
+      _err         -> {:reply, [], state}
+    end
+  end
+
+  def prefix_to_name(prefix) do
+    String.to_atom "#{prefix}_1"
   end
 end
